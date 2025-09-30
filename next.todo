@@ -1,0 +1,9 @@
+☐ Map validation errors back to blocks. Now that each block’s id survives in the IR, adjust extractIdsFromErrors (or tweak the validator messages) so the UI highlights the exact block that failed.
+☐ Generate & compile end to end. Wire brand selection and DLL references into the metadata so generated C# projects pull the right RobotLib implementation, then try a full compile using your vendor DLLs.
+☐ File management. Add a file picker to the UI so users can load/save maps.
+☐ UI polish.
+    ☐ Need zoom in/out buttons.
+    ☐ Layout tweaks.
+        ☐ Show C# code at top right with a switch to toggle between IR JSON.
+        ☐ Show Status at bottom right.
+    ☐ Better CSS styling for trash can icon.
