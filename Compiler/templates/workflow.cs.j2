@@ -1,0 +1,21 @@
+{% set namespace = namespace or "GeneratedWorkflows" %}
+{% set class_name = class_name or "RobotProgram" %}
+{% set method_name = method_name or "Run" %}
+using System;
+{% if use_collections %}using System.Collections.Generic;
+{% endif %}using RobotLib;
+
+namespace {{ namespace }}
+{
+    public static class {{ class_name }}
+    {
+        public static void {{ method_name }}()
+        {
+            var robot = {{ robot_factory }};
+{% if attach_console_logger %}            robot.OnLog += message => Console.WriteLine(message);
+{% endif %}{% if use_collections %}            var variables = new Dictionary<string, object>();
+{% endif %}{% if use_random %}            var random = new Random();
+{% endif %}{% for line in body_lines %}            {{ line }}
+{% endfor %}        }
+    }
+}

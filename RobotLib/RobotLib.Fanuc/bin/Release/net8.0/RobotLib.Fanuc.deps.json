@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "RobotLib.Fanuc/1.0.0": {
+        "dependencies": {
+          "RobotLib.Core": "1.0.0"
+        },
+        "runtime": {
+          "RobotLib.Fanuc.dll": {}
+        }
+      },
+      "RobotLib.Core/1.0.0": {
+        "runtime": {
+          "RobotLib.Core.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "RobotLib.Fanuc/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "RobotLib.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

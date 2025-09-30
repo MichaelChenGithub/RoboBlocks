@@ -1,0 +1,16 @@
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/bin/Release/net8.0/RobotLib.Kuka.deps.json
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/bin/Release/net8.0/RobotLib.Kuka.dll
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/bin/Release/net8.0/RobotLib.Kuka.pdb
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/bin/Release/net8.0/RobotLib.Core.dll
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/bin/Release/net8.0/RobotLib.Core.pdb
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/RobotLib.Kuka.csproj.AssemblyReference.cache
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/RobotLib.Kuka.GeneratedMSBuildEditorConfig.editorconfig
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/RobotLib.Kuka.AssemblyInfoInputs.cache
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/RobotLib.Kuka.AssemblyInfo.cs
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/RobotLib.Kuka.csproj.CoreCompileInputs.cache
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/RobotLib.Kuka.sourcelink.json
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/RobotLib.Kuka.csproj.CopyComplete
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/RobotLib.Kuka.dll
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/refint/RobotLib.Kuka.dll
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/RobotLib.Kuka.pdb
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Kuka/obj/Release/net8.0/ref/RobotLib.Kuka.dll

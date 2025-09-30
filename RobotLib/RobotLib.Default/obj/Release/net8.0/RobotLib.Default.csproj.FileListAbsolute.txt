@@ -1,0 +1,16 @@
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/bin/Release/net8.0/RobotLib.Default.deps.json
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/bin/Release/net8.0/RobotLib.Default.dll
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/bin/Release/net8.0/RobotLib.Default.pdb
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/bin/Release/net8.0/RobotLib.Core.dll
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/bin/Release/net8.0/RobotLib.Core.pdb
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/RobotLib.Default.csproj.AssemblyReference.cache
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/RobotLib.Default.GeneratedMSBuildEditorConfig.editorconfig
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/RobotLib.Default.AssemblyInfoInputs.cache
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/RobotLib.Default.AssemblyInfo.cs
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/RobotLib.Default.csproj.CoreCompileInputs.cache
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/RobotLib.Default.sourcelink.json
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/RobotLib.Default.csproj.CopyComplete
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/RobotLib.Default.dll
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/refint/RobotLib.Default.dll
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/RobotLib.Default.pdb
+/Users/michael/Projects/Actom/PT-Visual/codepad/RobotLib_New/RobotLib.Default/obj/Release/net8.0/ref/RobotLib.Default.dll

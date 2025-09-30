@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Robot Blockly Workspace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        html, body { height: 100%; margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+        #app { display: grid; grid-template-columns: 2fr 1fr; height: 100%; }
+        #workspace { position: relative; }
+        #log-panel { border-left: 1px solid #ccc; padding: 12px; box-sizing: border-box; overflow-y: auto; }
+        #log-panel h2 { margin-top: 0; }
+        #log { white-space: pre-wrap; word-break: break-word; }
+        .button-row { margin-bottom: 12px; display: flex; gap: 8px; }
+        button { padding: 8px 12px; }
+    </style>
+    <!-- TODO: Replace CDN scripts with locally hosted bundles when offline mode is implemented. -->
+    <link rel="stylesheet" href="vendor/blockly/blockly.css">
+    <script src="blockly_loader.js"></script>
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div id="workspace">
+            <div class="button-row">
+                <button id="btn-export">Export IR JSON</button>
+                <button id="btn-clear">Clear Workspace</button>
+            </div>
+            <div id="blocklyDiv" style="height: calc(100% - 48px); width: 100%;"></div>
+            <xml id="toolbox" style="display: none"></xml>
+        </div>
+        <div id="log-panel">
+            <h2>Status</h2>
+            <pre id="log">Initializing…</pre>
+        </div>
+    </div>
+    <script>
+        let bridge = null;
+        let workspace = null;
+
+        function initChannel() {
+            new QWebChannel(qt.webChannelTransport, function(channel) {
+                bridge = channel.objects.robotBridge;
+                bridge.validationResult.connect(onValidationResult);
+                bridge.codeGenerated.connect(onCodeGenerated);
+                bridge.generationFailed.connect(onGenerationFailed);
+                appendLog('Bridge connected.');
+                emitWorkspace();
+            });
+        }
+
+       function initBlockly() {
+            if (typeof Blockly === 'undefined') {
+                appendLog('Blockly library is unavailable. Check network access or bundle a local copy.');
+                return;
+            }
+            const toolboxDef = JSON.parse(Blockly.RobotToolbox);
+            workspace = Blockly.inject('blocklyDiv', {
+                toolbox: toolboxDef,
+                scrollbars: true,
+                trashcan: true,
+                renderer: 'zelos'
+            });
+
+            workspace.addChangeListener(handleWorkspaceChange);
+            appendLog('Workspace ready.');
+        }
+
+        function handleWorkspaceChange(event) {
+            if (event.type === Blockly.Events.BLOCK_CREATE) {
+                // Ensure the block ID stays in sync with IR command IDs.
+                const block = workspace.getBlockById(event.blockId);
+                if (block) {
+                    block.data = block.id;
+                }
+            }
+            // Debounce/aggregate? For now emit on every meaningful change.
+            if (event.type !== Blockly.Events.VIEWPORT_CHANGE) {
+                emitWorkspace();
+            }
+        }
+
+        function emitWorkspace() {
+            if (!bridge || !workspace) {
+                return;
+            }
+            try {
+                const irDocument = Blockly.RobotIR.workspaceToDocument(workspace);
+                const jsonText = JSON.stringify(irDocument, null, 2);
+                bridge.updateIrJson(jsonText);
+            } catch (err) {
+                appendLog('Generator error: ' + err);
+            }
+        }
+
+        function highlightBlocks(ids) {
+            if (!workspace) {
+                return;
+            }
+            workspace.highlightBlock(null);
+            ids.forEach(id => {
+                const block = workspace.getBlockById(id);
+                if (block) {
+                    workspace.highlightBlock(id);
+                }
+            });
+        }
+
+        function onValidationResult(isValid, errors, warnings) {
+            if (isValid) {
+                appendLog('IR valid.');
+                highlightBlocks([]);
+                if (warnings.length) {
+                    appendLog('Warnings:\n' + warnings.join('\n'));
+                }
+            } else {
+                appendLog('Validation failed:\n' + errors.join('\n'));
+                // Extract block IDs from messages (assuming they mention sequence indices).
+                highlightBlocks(extractIdsFromErrors(errors));
+            }
+        }
+
+        function onCodeGenerated(source) {
+            appendLog('C# generated. Check the desktop panel.');
+        }
+
+        function onGenerationFailed(message) {
+            appendLog('Generation failed: ' + message);
+        }
+
+        function appendLog(message) {
+            const log = document.getElementById('log');
+            log.textContent = message;
+        }
+
+        function extractIdsFromErrors(errors) {
+            const ids = [];
+            const regex = /'(.*?)'/;
+            errors.forEach(msg => {
+                const match = msg.match(regex);
+                if (match && match[1]) {
+                    ids.push(match[1]);
+                }
+            });
+            return ids;
+        }
+
+        document.getElementById('btn-export').addEventListener('click', function() {
+            if (!workspace) { return; }
+            const doc = Blockly.RobotIR.workspaceToDocument(workspace);
+            const text = JSON.stringify(doc, null, 2);
+            const blob = new Blob([text], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'robot_workflow.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', function() {
+            workspace.clear();
+        });
+
+        window.addEventListener('RobotBlocklyReady', function() {
+            initBlockly();
+        });
+
+        window.addEventListener('RobotBlocklyFailed', function() {
+            appendLog('Failed to load Blockly assets.');
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            appendLog('Loading Blockly assets…');
+            initChannel();
+        });
+    </script>
+</body>
+</html>
