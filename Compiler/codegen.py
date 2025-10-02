@@ -11,6 +11,7 @@ import argparse
 import json
 import math
 import sys
+from dataclasses import dataclass
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Tuple
@@ -28,17 +29,49 @@ Number = (int, float)
 
 TEMPLATE_DIRECTORY = Path(__file__).parent / "templates"
 DEFAULT_TEMPLATE = "workflow.cs.j2"
+PROJECT_TEMPLATE = "workflow.csproj.j2"
 
 
 class CodeGenerationError(RuntimeError):
     """Raised when the IR cannot be translated to C# code."""
 
 
-ROBOT_FACTORY_MAP: Mapping[str, str] = {
-    "fanuc": "new FanucRobot()",
-    "kuka": "new KukaRobot()",
-    "default": "new DefaultRobot()",
+
+@dataclass(frozen=True)
+class BrandArtifacts:
+    """Describes the build artefacts required for a robot brand."""
+
+    robot_factory: str
+    project_reference: str
+    vendor_dlls: Tuple[str, ...] = tuple()
+
+
+DEFAULT_BRAND = "default"
+
+BRAND_ARTIFACTS: Dict[str, BrandArtifacts] = {
+    DEFAULT_BRAND: BrandArtifacts(
+        robot_factory="new DefaultRobot()",
+        project_reference="RobotLib/RobotLib.Default/RobotLib.Default.csproj",
+        vendor_dlls=tuple(),
+    ),
+    "fanuc": BrandArtifacts(
+        robot_factory="new FanucRobot()",
+        project_reference="RobotLib/RobotLib.Fanuc/RobotLib.Fanuc.csproj",
+        vendor_dlls=tuple(),
+    ),
+    "kuka": BrandArtifacts(
+        robot_factory="new KukaRobot()",
+        project_reference="RobotLib/RobotLib.Kuka/RobotLib.Kuka.csproj",
+        vendor_dlls=tuple(),
+    ),
 }
+
+
+def resolve_brand_artifacts(brand: str) -> BrandArtifacts:
+    """Return artefact definitions for the requested brand."""
+
+    normalized = (brand or "").lower().strip()
+    return BRAND_ARTIFACTS.get(normalized, BRAND_ARTIFACTS[DEFAULT_BRAND])
 
 
 COMPARISON_OPERATORS: Mapping[str, str] = {
@@ -566,8 +599,9 @@ def generate_csharp_source(
     validation.raise_for_errors()
 
     metadata = ir_document.get("metadata", {}) or {}
-    brand = str(metadata.get("robot_brand", "default")).lower()
-    robot_factory = metadata.get("robot_factory") or ROBOT_FACTORY_MAP.get(brand, "new DefaultRobot()")
+    brand_key = str(metadata.get("robot_brand", DEFAULT_BRAND))
+    brand_artifacts = resolve_brand_artifacts(brand_key)
+    robot_factory = metadata.get("robot_factory") or brand_artifacts.robot_factory
 
     namespace = metadata.get("namespace", "GeneratedWorkflows")
     class_name = metadata.get("class_name", "RobotProgram")
@@ -592,13 +626,96 @@ def generate_csharp_source(
     )
 
 
-def generate_from_file(ir_path: str | Path, *, output_path: str | Path | None = None) -> str:
+def generate_csharp_project(
+    ir_document: Dict[str, Any],
+    *,
+    template_path: str | Path | None = None,
+) -> str:
+    """Render a C# project file tailored to the IR metadata."""
+
+    validation: ValidationResult = validate_ir_document(ir_document)
+    validation.raise_for_errors()
+
+    metadata = ir_document.get("metadata", {}) or {}
+    brand_key = str(metadata.get("robot_brand", DEFAULT_BRAND))
+    brand_artifacts = resolve_brand_artifacts(brand_key)
+
+    target_framework = metadata.get("target_framework", "net8.0")
+    output_type = metadata.get("output_type", "Library")
+    implicit_usings = metadata.get("implicit_usings", "enable")
+    nullable = metadata.get("nullable", "disable")
+
+    root_namespace = metadata.get("namespace", "GeneratedWorkflows")
+    assembly_name = metadata.get("assembly_name") or metadata.get("class_name", "RobotProgram")
+
+    primary_reference = metadata.get("robot_project_reference") or brand_artifacts.project_reference
+    project_references: List[str] = [primary_reference]
+    additional_refs = metadata.get("project_references", [])
+    if additional_refs:
+        if not isinstance(additional_refs, list):
+            raise CodeGenerationError("Field 'project_references' must be a list of paths.")
+        project_references.extend(str(path) for path in additional_refs)
+    # Deduplicate while preserving order
+    project_references = list(dict.fromkeys(_normalise_path(p) for p in project_references if p))
+
+    vendor_paths: List[str] = list(brand_artifacts.vendor_dlls)
+    metadata_vendor = metadata.get("vendor_dlls", [])
+    if metadata_vendor:
+        if not isinstance(metadata_vendor, list):
+            raise CodeGenerationError("Field 'vendor_dlls' must be a list of paths.")
+        vendor_paths.extend(str(path) for path in metadata_vendor)
+    vendor_paths = list(dict.fromkeys(_normalise_path(path) for path in vendor_paths if path))
+
+    vendor_copy_local = metadata.get("vendor_copy_local")
+    if vendor_copy_local is None:
+        private_value = None
+    elif isinstance(vendor_copy_local, bool):
+        private_value = "true" if vendor_copy_local else "false"
+    else:
+        private_value = str(vendor_copy_local)
+
+    vendor_references = [
+        {
+            "include": Path(path).stem,
+            "hint_path": path,
+            "private": private_value,
+        }
+        for path in vendor_paths
+    ]
+
+    env = _create_environment(template_path)
+    template: Template = env.get_template(PROJECT_TEMPLATE)
+
+    return template.render(
+        output_type=output_type,
+        target_framework=target_framework,
+        implicit_usings=implicit_usings,
+        nullable=nullable,
+        assembly_name=assembly_name,
+        root_namespace=root_namespace,
+        project_references=project_references,
+        vendor_references=vendor_references,
+    )
+
+
+def generate_from_file(
+    ir_path: str | Path,
+    *,
+    output_path: str | Path | None = None,
+    project_output_path: str | Path | None = None,
+    template_path: str | Path | None = None,
+) -> str:
     """Load an IR JSON file and return or write the generated C# source."""
 
     with open(ir_path, "r", encoding="utf-8") as handle:
         document = json.load(handle)
 
-    source = generate_csharp_source(document)
+    source = generate_csharp_source(document, template_path=template_path)
+
+    if project_output_path is not None:
+        project_content = generate_csharp_project(document, template_path=template_path)
+        with open(project_output_path, "w", encoding="utf-8") as handle:
+            handle.write(project_content)
 
     if output_path is not None:
         with open(output_path, "w", encoding="utf-8") as handle:
@@ -673,6 +790,10 @@ def _format_string(value: str) -> str:
     return json.dumps(value)
 
 
+def _normalise_path(path: str) -> str:
+    return Path(str(path)).as_posix()
+
+
 def format_number(value: float) -> str:
     if math.isfinite(value):
         if float(value).is_integer():
@@ -729,12 +850,21 @@ def main(argv: Iterable[str] | None = None) -> int:
         "--template-dir",
         help="Optional custom template directory overriding the bundled templates.",
     )
+    parser.add_argument(
+        "--project-output",
+        help="Optional path to write the generated C# project definition.",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     try:
         with open(args.ir_path, "r", encoding="utf-8") as handle:
             document = json.load(handle)
         source = generate_csharp_source(document, template_path=args.template_dir)
+        project_content = (
+            generate_csharp_project(document, template_path=args.template_dir)
+            if args.project_output
+            else None
+        )
     except FileNotFoundError as exc:
         parser.error(str(exc))
     except json.JSONDecodeError as exc:
@@ -747,11 +877,16 @@ def main(argv: Iterable[str] | None = None) -> int:
             handle.write(source)
     else:
         sys.stdout.write(source)
+
+    if args.project_output and project_content is not None:
+        with open(args.project_output, "w", encoding="utf-8") as handle:
+            handle.write(project_content)
     return 0
 
 
 __all__ = [
     "generate_csharp_source",
+    "generate_csharp_project",
     "generate_from_file",
     "CodeGenerationError",
 ]

@@ -1,9 +1,14 @@
-☐ Map validation errors back to blocks. Now that each block’s id survives in the IR, adjust extractIdsFromErrors (or tweak the validator messages) so the UI highlights the exact block that failed.
+✔ UI polish. @done(25-10-02 14:31)
+    ✔ Need zoom in/out buttons. @done(25-10-02 14:31)
+    ✔ Layout tweaks. @done(25-10-02 14:31)
+        ✔ Show C# code at top right with a switch to toggle between IR JSON. @done(25-10-02 14:31)
+        ✔ Show Status at bottom right. @done(25-10-02 14:31)
+    ✔ fix trash can icon. @done(25-10-02 14:31)
 ☐ Generate & compile end to end. Wire brand selection and DLL references into the metadata so generated C# projects pull the right RobotLib implementation, then try a full compile using your vendor DLLs.
+    ✔ Export .csproj and .cs files. @done(25-10-02 15:59)
+    ☐ Invoke dotnet build and capture output.
 ☐ File management. Add a file picker to the UI so users can load/save maps.
-☐ UI polish.
-    ☐ Need zoom in/out buttons.
-    ☐ Layout tweaks.
-        ☐ Show C# code at top right with a switch to toggle between IR JSON.
-        ☐ Show Status at bottom right.
-    ☐ Better CSS styling for trash can icon.
+☐ Generated project storage issue
+    ☐ If we allow user to store the project everywhere, that might cause the reference route getting wrong.
+
+✘ Map validation errors back to blocks. Now that each block’s id survives in the IR, adjust extractIdsFromErrors (or tweak the validator messages) so the UI highlights the exact block that failed. @cancelled(25-10-02 16:02)

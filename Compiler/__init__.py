@@ -7,7 +7,12 @@ from .ir_schema import (
     pretty_print_spec,
     validate_ir_document,
 )
-from .codegen import CodeGenerationError, generate_csharp_source, generate_from_file
+from .codegen import (
+    CodeGenerationError,
+    generate_csharp_project,
+    generate_csharp_source,
+    generate_from_file,
+)
 
 __all__ = [
     "COMMAND_SPECS",
@@ -17,5 +22,6 @@ __all__ = [
     "validate_ir_document",
     "CodeGenerationError",
     "generate_csharp_source",
+    "generate_csharp_project",
     "generate_from_file",
 ]

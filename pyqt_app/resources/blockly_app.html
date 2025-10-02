@@ -6,15 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
         html, body { height: 100%; margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
-        #app { display: grid; grid-template-columns: 2fr 1fr; height: 100%; }
-        #workspace { position: relative; }
-        #log-panel { border-left: 1px solid #ccc; padding: 12px; box-sizing: border-box; overflow-y: auto; }
-        #log-panel h2 { margin-top: 0; }
-        #log { white-space: pre-wrap; word-break: break-word; }
-        .button-row { margin-bottom: 12px; display: flex; gap: 8px; }
+        #app { display: flex; flex-direction: column; height: 100%; }
+        #workspace { position: relative; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+        #log-panel { border-top: 1px solid #ccc; padding: 12px; box-sizing: border-box; flex: 0 0 140px; display: flex; flex-direction: column; }
+        #log-panel h2 { margin: 0 0 8px; }
+        #log { white-space: pre-wrap; word-break: break-word; flex: 1 1 auto; margin: 0; overflow-y: auto; }
+        .button-row { margin: 10px 0px; display: flex; gap: 8px; flex-wrap: wrap; }
         button { padding: 8px 12px; }
+        #blocklyDiv { flex: 1 1 auto; width: 100%; min-height: 0; }
     </style>
-    <!-- TODO: Replace CDN scripts with locally hosted bundles when offline mode is implemented. -->
     <link rel="stylesheet" href="vendor/blockly/blockly.css">
     <script src="blockly_loader.js"></script>
     <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
@@ -25,12 +25,14 @@
             <div class="button-row">
                 <button id="btn-export">Export IR JSON</button>
                 <button id="btn-clear">Clear Workspace</button>
+                <button id="btn-zoom-in" title="Zoom in">Zoom In</button>
+                <button id="btn-zoom-out" title="Zoom out">Zoom Out</button>
             </div>
-            <div id="blocklyDiv" style="height: calc(100% - 48px); width: 100%;"></div>
+            <div id="blocklyDiv"></div>
             <xml id="toolbox" style="display: none"></xml>
         </div>
         <div id="log-panel">
-            <h2>Status</h2>
+            <h4>Status</h4>
             <pre id="log">Initializing…</pre>
         </div>
     </div>
@@ -59,7 +61,8 @@
                 toolbox: toolboxDef,
                 scrollbars: true,
                 trashcan: true,
-                renderer: 'zelos'
+                renderer: 'zelos',
+                media: 'vendor/blockly/media/'
             });
 
             workspace.addChangeListener(handleWorkspaceChange);
@@ -160,6 +163,16 @@
 
         document.getElementById('btn-clear').addEventListener('click', function() {
             workspace.clear();
+        });
+
+        document.getElementById('btn-zoom-in').addEventListener('click', function() {
+            if (!workspace) { return; }
+            workspace.zoomCenter(1);
+        });
+
+        document.getElementById('btn-zoom-out').addEventListener('click', function() {
+            if (!workspace) { return; }
+            workspace.zoomCenter(-1);
         });
 
         window.addEventListener('RobotBlocklyReady', function() {

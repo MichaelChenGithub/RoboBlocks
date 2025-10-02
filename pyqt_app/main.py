@@ -73,11 +73,17 @@ class MainWindow(QMainWindow):
         save_action.triggered.connect(self._save_source)
         toolbar.addAction(save_action)
 
+        export_action = QAction("Export Project...", self)
+        export_action.triggered.connect(self._export_project)
+        toolbar.addAction(export_action)
+
     def _connect_signals(self) -> None:
         self._bridge.validationResult.connect(self._on_validation_result)
         self._bridge.codeGenerated.connect(self._on_code_generated)
         self._bridge.generationFailed.connect(self._on_generation_failed)
         self._bridge.irUpdated.connect(self._on_ir_updated)
+        self._bridge.projectGenerated.connect(self._on_project_generated)
+        self._bridge.projectGenerationFailed.connect(self._on_project_generation_failed)
 
     def _on_validation_result(self, is_valid: bool, errors: list, warnings: list) -> None:
         if is_valid:
@@ -117,6 +123,28 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Save C#", "Failed to write file.")
         else:
             self.statusBar().showMessage(f"Saved to {path}")
+
+    def _export_project(self) -> None:
+        directory = QFileDialog.getExistingDirectory(
+            self,
+            "Export Project",
+            str(Path.cwd() / "GeneratedProject"),
+        )
+        if not directory:
+            return
+        self._bridge.exportProjectBundle(directory)
+
+    def _on_project_generated(self, project_path: str, source_path: str) -> None:
+        self.statusBar().showMessage(f"Exported project to {project_path}")
+        QMessageBox.information(
+            self,
+            "Export Project",
+            f"Project file: {project_path}\nSource file: {source_path}",
+        )
+
+    def _on_project_generation_failed(self, message: str) -> None:
+        self.statusBar().showMessage("Project export failed")
+        QMessageBox.critical(self, "Export Project", message)
 
 
 def run() -> int:
