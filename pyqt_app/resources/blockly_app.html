@@ -11,7 +11,7 @@
         #log-panel { border-top: 1px solid #ccc; padding: 12px; box-sizing: border-box; flex: 0 0 140px; display: flex; flex-direction: column; }
         #log-panel h2 { margin: 0 0 8px; }
         #log { white-space: pre-wrap; word-break: break-word; flex: 1 1 auto; margin: 0; overflow-y: auto; }
-        .button-row { margin: 10px 0px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .button-row { margin: 10px 6px; display: flex; gap: 8px; flex-wrap: wrap; }
         button { padding: 8px 12px; }
         #blocklyDiv { flex: 1 1 auto; width: 100%; min-height: 0; }
     </style>
@@ -23,7 +23,7 @@
     <div id="app">
         <div id="workspace">
             <div class="button-row">
-                <button id="btn-export">Export IR JSON</button>
+                <!-- <button id="btn-export">Export IR JSON</button> -->
                 <button id="btn-clear">Clear Workspace</button>
                 <button id="btn-zoom-in" title="Zoom in">Zoom In</button>
                 <button id="btn-zoom-out" title="Zoom out">Zoom Out</button>
@@ -148,18 +148,18 @@
             return ids;
         }
 
-        document.getElementById('btn-export').addEventListener('click', function() {
-            if (!workspace) { return; }
-            const doc = Blockly.RobotIR.workspaceToDocument(workspace);
-            const text = JSON.stringify(doc, null, 2);
-            const blob = new Blob([text], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'robot_workflow.json';
-            a.click();
-            URL.revokeObjectURL(url);
-        });
+        // document.getElementById('btn-export').addEventListener('click', function() {
+        //     if (!workspace) { return; }
+        //     const doc = Blockly.RobotIR.workspaceToDocument(workspace);
+        //     const text = JSON.stringify(doc, null, 2);
+        //     const blob = new Blob([text], { type: 'application/json' });
+        //     const url = URL.createObjectURL(blob);
+        //     const a = document.createElement('a');
+        //     a.href = url;
+        //     a.download = 'robot_workflow.json';
+        //     a.click();
+        //     URL.revokeObjectURL(url);
+        // });
 
         document.getElementById('btn-clear').addEventListener('click', function() {
             workspace.clear();
