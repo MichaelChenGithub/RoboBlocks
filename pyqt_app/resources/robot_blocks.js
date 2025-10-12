@@ -5,6 +5,14 @@
             console.error('Blockly is not loaded. Ensure blockly.min.js is reachable.');
             return;
         }
+    const CATEGORY_MAIN = {
+        kind: 'category',
+        name: 'Main',
+        colour: '#ffab19',
+        contents: [
+            { kind: 'block', type: 'main_entry' }
+        ]
+    };
 
     const CATEGORY_LOGIC = {
         kind: 'category',
@@ -120,6 +128,16 @@
         ]
     };
 
+    const CATEGORY_VISION = {
+        kind: 'category',
+        name: 'Computer Vision',
+        colour: '#6D5CA6',
+        contents: [
+            { kind: 'block', type: 'create_model' },
+            { kind: 'block', type: 'set_hyperparams' }
+        ]
+    };
+
     const CATEGORY_IO = {
         kind: 'category',
         name: 'Digital IO',
@@ -129,20 +147,12 @@
         ]
     };
 
-    const CATEGORY_METADATA = {
-        kind: 'category',
-        name: 'Metadata',
-        colour: '#aa8f39',
-        contents: [
-            { kind: 'block', type: 'set_metadata' }
-        ]
-    };
-
         Blockly.RobotToolbox = JSON.stringify({
         kind: 'categoryToolbox',
             contents: [
-                CATEGORY_METADATA,
+                CATEGORY_MAIN,
                 CATEGORY_ACTIONS,
+                CATEGORY_VISION,
                 CATEGORY_IO,
                 CATEGORY_QUERIES,
                 CATEGORY_LOGIC,
@@ -175,30 +185,16 @@
             .appendField(new Blockly.FieldTextInput(defaultValue || ''), name);
     }
 
-        function addCheckboxField(block, name, label) {
-        block.appendDummyInput()
-            .appendField(label)
-            .appendField(new Blockly.FieldCheckbox('FALSE'), name);
-    }
-
-        // Metadata block
-        Blockly.Blocks['set_metadata'] = {
-        init: function() {
-            this.setColour('#aa8f39');
-            this.appendDummyInput().appendField('Workflow metadata');
-            this.appendDummyInput()
-                .appendField('Robot brand')
-                .appendField(new Blockly.FieldDropdown([
-                    ['Default', 'default'],
-                    ['Fanuc', 'fanuc'],
-                    ['Kuka', 'kuka']
-                ]), 'ROBOT_BRAND');
-            addTextField(this, 'NAMESPACE', 'Namespace', 'GeneratedWorkflows');
-            addTextField(this, 'CLASS_NAME', 'Class name', 'RobotProgram');
-            addTextField(this, 'METHOD_NAME', 'Method', 'Run');
-            addCheckboxField(this, 'ATTACH_LOGGER', 'Attach console logger');
-            this.setPreviousStatement(false, null);
-        }
+        // Main entry block
+        Blockly.Blocks['main_entry'] = {
+            init: function() {
+                this.setColour('#ffab19');
+                this.appendDummyInput().appendField('Main entry');
+                this.appendStatementInput('DO').setCheck(null);
+                this.setTooltip('Program entry point. Only statements connected here will run.');
+                this.setPreviousStatement(false, null);
+                this.setNextStatement(false, null);
+            }
         };
 
         // Basic connection and power blocks
@@ -206,6 +202,13 @@
         addTextField(this, 'IP', 'IP address', '192.168.0.10');
         addNumberField(this, 'PORT', 'Port', 60008);
         addNumberField(this, 'TIMEOUT', 'Timeout (ms)', 5000);
+        this.appendDummyInput()
+            .appendField('Robot brand')
+            .appendField(new Blockly.FieldDropdown([
+                ['Default', 'default'],
+                ['Fanuc', 'fanuc'],
+                ['Kuka', 'kuka']
+            ]), 'ROBOT_BRAND');
     });
 
     createBlock('disconnect_robot', '#5C81A6', function() {
@@ -332,11 +335,22 @@
         addNumberField(this, 'PORT', 'Port', 0);
         addTextField(this, 'STORE', 'Store as', 'inputValue');
     });
+
+    createBlock('create_model', '#6D5CA6', function() {
+        this.appendDummyInput().appendField('Create CV model');
+    });
+
+    createBlock('set_hyperparams', '#6D5CA6', function() {
+        this.appendDummyInput().appendField('Set hyperparameters');
+        addNumberField(this, 'PARAM_A', 'A', 0);
+        addNumberField(this, 'PARAM_B', 'B', 0);
+        addNumberField(this, 'PARAM_C', 'C', 0);
+    });
     }
 
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        setTimeout(init, 0);
-    } else {
+    if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
     }
 })(window);

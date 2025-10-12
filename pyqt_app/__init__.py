@@ -1,4 +1,4 @@
-"""PyQt6 application for interactive IR validation and C# generation."""
+"""PyQt6 application for generating Python code from Blockly workspaces."""
 
 from .bridge import RobotCompilerBridge
 from .main import MainWindow, run

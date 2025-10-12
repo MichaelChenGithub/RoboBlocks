@@ -23,7 +23,6 @@
     <div id="app">
         <div id="workspace">
             <div class="button-row">
-                <!-- <button id="btn-export">Export IR JSON</button> -->
                 <button id="btn-clear">Clear Workspace</button>
                 <button id="btn-zoom-in" title="Zoom in">Zoom In</button>
                 <button id="btn-zoom-out" title="Zoom out">Zoom Out</button>
@@ -43,20 +42,25 @@
         function initChannel() {
             new QWebChannel(qt.webChannelTransport, function(channel) {
                 bridge = channel.objects.robotBridge;
-                bridge.validationResult.connect(onValidationResult);
-                bridge.codeGenerated.connect(onCodeGenerated);
-                bridge.generationFailed.connect(onGenerationFailed);
                 appendLog('Bridge connected.');
                 emitWorkspace();
             });
         }
 
-       function initBlockly() {
+        function initBlockly() {
             if (typeof Blockly === 'undefined') {
                 appendLog('Blockly library is unavailable. Check network access or bundle a local copy.');
                 return;
             }
-            const toolboxDef = JSON.parse(Blockly.RobotToolbox);
+            if (!Blockly.RobotToolbox) {
+                appendLog('Toolbox not ready yet. Retrying...');
+                setTimeout(initBlockly, 50);
+                return;
+            }
+            const toolboxSource = Blockly.RobotToolbox;
+            const toolboxDef = typeof toolboxSource === 'string'
+                ? JSON.parse(toolboxSource)
+                : toolboxSource;
             workspace = Blockly.inject('blocklyDiv', {
                 toolbox: toolboxDef,
                 scrollbars: true,
@@ -67,99 +71,39 @@
 
             workspace.addChangeListener(handleWorkspaceChange);
             appendLog('Workspace ready.');
+            emitWorkspace();
         }
 
         function handleWorkspaceChange(event) {
             if (event.type === Blockly.Events.BLOCK_CREATE) {
-                // Ensure the block ID stays in sync with IR command IDs.
+                // Preserve deterministic IDs for custom block lookups.
                 const block = workspace.getBlockById(event.blockId);
                 if (block) {
                     block.data = block.id;
                 }
             }
-            // Debounce/aggregate? For now emit on every meaningful change.
             if (event.type !== Blockly.Events.VIEWPORT_CHANGE) {
                 emitWorkspace();
             }
         }
 
         function emitWorkspace() {
-            if (!bridge || !workspace) {
+            if (!bridge || !workspace || !Blockly || !Blockly.Python) {
                 return;
             }
             try {
-                const irDocument = Blockly.RobotIR.workspaceToDocument(workspace);
-                const jsonText = JSON.stringify(irDocument, null, 2);
-                bridge.updateIrJson(jsonText);
+                const pythonCode = Blockly.Python.workspaceToCode(workspace);
+                bridge.updatePythonCode(pythonCode);
+                appendLog('Python code updated.');
             } catch (err) {
-                appendLog('Generator error: ' + err);
+                appendLog('Python generation error: ' + err);
             }
-        }
-
-        function highlightBlocks(ids) {
-            if (!workspace) {
-                return;
-            }
-            workspace.highlightBlock(null);
-            ids.forEach(id => {
-                const block = workspace.getBlockById(id);
-                if (block) {
-                    workspace.highlightBlock(id);
-                }
-            });
-        }
-
-        function onValidationResult(isValid, errors, warnings) {
-            if (isValid) {
-                appendLog('IR valid.');
-                highlightBlocks([]);
-                if (warnings.length) {
-                    appendLog('Warnings:\n' + warnings.join('\n'));
-                }
-            } else {
-                appendLog('Validation failed:\n' + errors.join('\n'));
-                // Extract block IDs from messages (assuming they mention sequence indices).
-                highlightBlocks(extractIdsFromErrors(errors));
-            }
-        }
-
-        function onCodeGenerated(source) {
-            appendLog('C# generated. Check the desktop panel.');
-        }
-
-        function onGenerationFailed(message) {
-            appendLog('Generation failed: ' + message);
         }
 
         function appendLog(message) {
             const log = document.getElementById('log');
             log.textContent = message;
         }
-
-        function extractIdsFromErrors(errors) {
-            const ids = [];
-            const regex = /'(.*?)'/;
-            errors.forEach(msg => {
-                const match = msg.match(regex);
-                if (match && match[1]) {
-                    ids.push(match[1]);
-                }
-            });
-            return ids;
-        }
-
-        // document.getElementById('btn-export').addEventListener('click', function() {
-        //     if (!workspace) { return; }
-        //     const doc = Blockly.RobotIR.workspaceToDocument(workspace);
-        //     const text = JSON.stringify(doc, null, 2);
-        //     const blob = new Blob([text], { type: 'application/json' });
-        //     const url = URL.createObjectURL(blob);
-        //     const a = document.createElement('a');
-        //     a.href = url;
-        //     a.download = 'robot_workflow.json';
-        //     a.click();
-        //     URL.revokeObjectURL(url);
-        // });
 
         document.getElementById('btn-clear').addEventListener('click', function() {
             workspace.clear();
